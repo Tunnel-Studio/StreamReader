@@ -1,0 +1,197 @@
+/* CSS Variables - Dark Theme */
+:root {
+  /* Background colors */
+  --bg-primary: #0a0a12;
+  --bg-secondary: #0f0f1a;
+  --bg-tertiary: #1a1a2e;
+  --bg-elevated: #2a2a4e;
+
+  /* Text colors */
+  --text-primary: #ffffff;
+  --text-secondary: #e0e0e0;
+  --text-muted: #a0a0a0;
+  --text-dim: #666666;
+
+  /* Border colors */
+  --border-primary: #2a2a4e;
+  --border-secondary: #3a3a5e;
+  --border-highlight: #4a4a8e;
+
+  /* Accent colors */
+  --accent-primary: #4f46e5;
+  --accent-primary-hover: #4338ca;
+  --accent-success: #22c55e;
+  --accent-success-hover: #16a34a;
+  --accent-danger: #ef4444;
+  --accent-danger-hover: #dc2626;
+  --accent-warning: #fbbf24;
+
+  /* ORP highlight color */
+  --orp-color: #ef4444;
+
+  /* Component-specific */
+  --header-bg: var(--bg-secondary);
+  --header-border: var(--border-primary);
+  --header-title-color: var(--text-primary);
+
+  --menu-bg: var(--bg-secondary);
+  --menu-border: var(--border-primary);
+  --menu-title-color: var(--text-primary);
+  --menu-item-bg: var(--bg-tertiary);
+  --menu-item-border: var(--border-primary);
+  --menu-item-color: var(--text-secondary);
+  --menu-item-active-bg: #2a2a5e;
+  --menu-section-bg: var(--bg-tertiary);
+  --menu-section-color: var(--text-dim);
+  --menu-divider: var(--border-primary);
+
+  --word-display-bg: var(--bg-tertiary);
+  --word-display-border: var(--border-primary);
+  --word-color: var(--text-secondary);
+
+  --button-bg: var(--bg-tertiary);
+  --button-border: var(--border-primary);
+  --button-color: var(--text-secondary);
+  --button-active-bg: #3a3a6e;
+  --button-active-border: #4a4a8e;
+
+  --play-bg: var(--accent-success);
+  --play-border: var(--accent-success-hover);
+  --pause-bg: var(--accent-danger);
+  --pause-border: var(--accent-danger-hover);
+
+  --slider-track-bg: var(--border-primary);
+  --slider-fill: var(--accent-primary);
+  --label-color: var(--text-muted);
+  --value-color: var(--text-secondary);
+
+  --progress-track-bg: var(--border-primary);
+  --progress-fill: var(--accent-primary);
+  --progress-text-color: var(--text-muted);
+
+  --viewer-bg: var(--bg-secondary);
+  --viewer-border: var(--border-primary);
+  --viewer-text-color: #c0c0c0;
+  --highlight-bg: var(--accent-warning);
+  --highlight-color: var(--bg-tertiary);
+
+  --library-bg: var(--bg-primary);
+  --library-title-color: var(--text-primary);
+  --card-bg: var(--bg-tertiary);
+  --card-border: var(--border-primary);
+  --card-title-color: var(--text-primary);
+  --card-subtitle-color: #888888;
+  --card-meta-color: #888888;
+  --card-progress-color: var(--accent-primary);
+  --icon-bg: var(--bg-elevated);
+  --icon-color: var(--text-muted);
+  --empty-icon-color: #3a3a5e;
+  --empty-title-color: var(--text-muted);
+  --empty-text-color: var(--text-dim);
+  --primary-button-bg: var(--accent-primary);
+  --delete-color: var(--accent-danger);
+
+  --dropzone-bg: var(--bg-tertiary);
+  --dropzone-border: #3a3a5e;
+  --dropzone-active-bg: rgba(79, 70, 229, 0.1);
+  --dropzone-active-border: var(--accent-primary);
+  --dropzone-icon: #4a4a6e;
+  --dropzone-active-icon: var(--accent-primary);
+
+  --button-secondary-bg: var(--bg-elevated);
+  --button-secondary-color: var(--text-secondary);
+
+  --success-color: var(--accent-success);
+  --error-bg: rgba(239, 68, 68, 0.1);
+  --error-border: var(--accent-danger);
+  --error-color: var(--accent-danger);
+}
+
+/* Global styles */
+html, body {
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-highlight);
+}
+
+/* Range input styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  border: 2px solid var(--bg-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  margin-top: -5px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  border: 2px solid var(--bg-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+input[type="range"]:focus {
+  outline: none;
+}
+
+input[type="range"]:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+}
+
+/* Button hover states */
+button:not(:disabled):hover {
+  filter: brightness(1.1);
+}
+
+button:not(:disabled):active {
+  filter: brightness(0.95);
+}
+
+/* Focus styles */
+button:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Transition defaults */
+button, input, a {
+  transition: all 0.15s ease;
+}
+
+/* Selection color */
+::selection {
+  background-color: var(--accent-primary);
+  color: white;
+}

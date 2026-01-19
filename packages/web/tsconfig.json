@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "paths": {
+      "@streamreader/core": ["../core/src"],
+      "@streamreader/core/*": ["../core/src/*"],
+      "@streamreader/ui": ["../ui/src"],
+      "@streamreader/ui/*": ["../ui/src/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"],
+  "references": [
+    { "path": "../core" }
+  ]
+}
