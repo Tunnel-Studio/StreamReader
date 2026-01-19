@@ -50,11 +50,20 @@ export const createReaderStore = () =>
 
         // Document actions
         loadDocument: (doc: Document) => {
-          const chapter = doc.chapters[0];
+          // Find first substantial chapter (skip cover, title pages, etc.)
+          let chapterIndex = 0;
+          for (let i = 0; i < doc.chapters.length; i++) {
+            const wordCount = tokenize(doc.chapters[i].content).length;
+            if (wordCount > 100) {
+              chapterIndex = i;
+              break;
+            }
+          }
+          const chapter = doc.chapters[chapterIndex];
           const words = chapter ? tokenize(chapter.content) : [];
           set({
             currentDocument: doc,
-            currentChapterIndex: 0,
+            currentChapterIndex: chapterIndex,
             words,
             currentWordIndex: 0,
             isPlaying: false,
