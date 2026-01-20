@@ -75,6 +75,8 @@ export interface ReaderState {
 
   // Library
   library: DocumentMeta[];
+  // Full documents storage (id -> Document)
+  documents: Record<string, Document>;
 }
 
 export interface ReaderActions {
@@ -107,6 +109,11 @@ export interface ReaderActions {
   addToLibrary: (meta: DocumentMeta) => void;
   removeFromLibrary: (id: string) => void;
   updateLibraryItem: (id: string, updates: Partial<DocumentMeta>) => void;
+
+  // Documents storage
+  saveDocument: (doc: Document) => void;
+  getDocument: (id: string) => Document | undefined;
+  removeDocument: (id: string) => void;
 }
 
 export type ReaderStore = ReaderState & ReaderActions;

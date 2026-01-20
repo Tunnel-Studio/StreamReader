@@ -23,6 +23,7 @@ export const createReaderStore = () =>
         showMenu: false,
         splitView: false,
         library: [],
+        documents: {},
 
         // Playback actions
         play: () => set({ isPlaying: true }),
@@ -122,6 +123,20 @@ export const createReaderStore = () =>
               item.id === id ? { ...item, ...updates } : item
             ),
           })),
+
+        // Documents storage actions
+        saveDocument: (doc: Document) =>
+          set((state) => ({
+            documents: { ...state.documents, [doc.id]: doc },
+          })),
+        getDocument: (id: string) => {
+          return get().documents[id];
+        },
+        removeDocument: (id: string) =>
+          set((state) => {
+            const { [id]: _, ...rest } = state.documents;
+            return { documents: rest };
+          }),
       }),
       {
         name: 'streamreader-storage',
@@ -143,6 +158,7 @@ export const createReaderStore = () =>
           boxWidth: state.boxWidth,
           theme: state.theme,
           library: state.library,
+          documents: state.documents,
         }),
       }
     )

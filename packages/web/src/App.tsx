@@ -48,6 +48,9 @@ function App() {
     setChapter,
     addToLibrary,
     removeFromLibrary,
+    removeDocument,
+    saveDocument,
+    getDocument,
     goToWord,
   } = useReaderStore();
 
@@ -78,6 +81,7 @@ function App() {
 
     try {
       const doc = await documentParser.parse(file);
+      saveDocument(doc); // Save full document to storage
       loadDocument(doc);
       addToLibrary(doc.metadata);
       setView('reader');
@@ -90,10 +94,23 @@ function App() {
   };
 
   // Handle library document selection
-  const handleDocumentSelect = async (meta: DocumentMeta) => {
-    // For now, we need to re-import the file
-    // In a real app, you'd store the parsed document data
-    setView('import');
+  const handleDocumentSelect = (meta: DocumentMeta) => {
+    const doc = getDocument(meta.id);
+    if (doc) {
+      rsvp.stop();
+      loadDocument(doc);
+      setView('reader');
+    } else {
+      // Document not in storage (shouldn't happen, but fallback to import)
+      setError('Document not found. Please re-import the file.');
+      setView('import');
+    }
+  };
+
+  // Handle library document deletion
+  const handleDocumentDelete = (id: string) => {
+    removeFromLibrary(id);
+    removeDocument(id);
   };
 
   // Handle chapter selection
@@ -155,7 +172,7 @@ function App() {
           <Library
             documents={library}
             onDocumentSelect={handleDocumentSelect}
-            onDocumentDelete={removeFromLibrary}
+            onDocumentDelete={handleDocumentDelete}
             onImportClick={() => setView('import')}
           />
         )}
