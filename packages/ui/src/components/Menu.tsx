@@ -1,6 +1,5 @@
-import React from 'react';
 import { User, BookOpen, Plus, Settings, X, ChevronRight } from 'lucide-react';
-import type { Chapter, DocumentMeta } from '@streamreader/core';
+import type { Chapter } from '@streamreader/core';
 
 export interface MenuProps {
   isOpen: boolean;

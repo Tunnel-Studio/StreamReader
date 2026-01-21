@@ -10,8 +10,8 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@streamreader/core": "workspace:*",
-    "@streamreader/ui": "workspace:*",
+    "@streamreader/core": "*",
+    "@streamreader/ui": "*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "lucide-react": "^0.312.0"

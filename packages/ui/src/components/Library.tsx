@@ -1,4 +1,3 @@
-import React from 'react';
 import { FileText, Trash2, Clock, BookOpen } from 'lucide-react';
 import type { DocumentMeta } from '@streamreader/core';
 

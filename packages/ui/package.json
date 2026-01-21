@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@streamreader/core": "workspace:*",
+    "@streamreader/core": "*",
     "react": "^18.2.0",
     "lucide-react": "^0.312.0"
   },

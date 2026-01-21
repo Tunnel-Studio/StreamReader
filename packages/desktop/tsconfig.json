@@ -1,0 +1,28 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "moduleResolution": "Node",
+    "strict": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@streamreader/core": ["../core/src"],
+      "@streamreader/core/*": ["../core/src/*"],
+      "@streamreader/ui": ["../ui/src"],
+      "@streamreader/ui/*": ["../ui/src/*"]
+    }
+  },
+  "include": ["src", "electron"],
+  "exclude": ["node_modules", "dist", "dist-electron"]
+}

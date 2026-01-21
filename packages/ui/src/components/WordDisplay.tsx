@@ -1,4 +1,3 @@
-import React from 'react';
 import { splitWordByORP } from '@streamreader/core';
 
 export interface WordDisplayProps {

@@ -5,12 +5,13 @@ export interface HeaderProps {
   title?: string;
   onMenuClick?: () => void;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 /**
  * App header with hamburger menu and title.
  */
-export function Header({ title = 'StreamReader', onMenuClick, className = '' }: HeaderProps) {
+export function Header({ title = 'StreamReader', onMenuClick, className = '', style }: HeaderProps) {
   return (
     <header
       className={`header ${className}`}
@@ -21,6 +22,7 @@ export function Header({ title = 'StreamReader', onMenuClick, className = '' }: 
         padding: '16px 20px',
         backgroundColor: 'var(--header-bg, #0f0f1a)',
         borderBottom: '1px solid var(--header-border, #2a2a4e)',
+        ...style,
       }}
     >
       {onMenuClick && (

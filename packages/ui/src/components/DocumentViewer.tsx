@@ -49,7 +49,7 @@ export function DocumentViewer({
     }
 
     // Build highlighted content
-    const currentWord = words[currentWordIndex];
+     // const currentWord = words[currentWordIndex];
     let wordCount = 0;
     let foundHighlight = false;
 
