@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+**/node_modules/**
 .pnpm-store/
 
 # Build outputs
@@ -34,3 +35,6 @@ coverage/
 
 # OS files
 Thumbs.db
+
+# Releases
+**/release/**

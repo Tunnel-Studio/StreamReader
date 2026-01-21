@@ -43,6 +43,7 @@ function App() {
     setShowMenu,
     toggleSplitView,
     loadDocument,
+    setChapter,
     addToLibrary,
     removeDocument,
     saveDocument,
@@ -129,8 +130,10 @@ function App() {
         onImportClick={handleImportClick}
         chapters={currentDocument?.chapters}
         currentChapterIndex={currentChapterIndex}
-        onChapterSelect={(_index) => {
-            // Logic to change chapter
+        onChapterSelect={(index) => {
+          rsvp.stop();
+          setChapter(index);
+          setShowMenu(false);
         }}
       />
       {/* Settings controls that were in Menu might need to be placed elsewhere or Menu component updated */}
@@ -175,6 +178,10 @@ function App() {
                   onPlay={rsvp.play}
                   onPause={rsvp.pause}
                   onStop={rsvp.stop}
+                  onToggleSplitView={toggleSplitView}
+                  splitViewActive={splitView}
+                  onPrevious={rsvp.previousWord}
+                  onNext={rsvp.nextWord}
                 />
                 <div className="controls-row">
                     <SpeedSlider value={wpm} onChange={setWpm} />

@@ -3,14 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "description": "Speed reading app using RSVP technique",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "pnpm --filter @streamreader/web dev",
-    "dev:web": "pnpm --filter @streamreader/web dev",
-    "build": "pnpm -r build",
-    "build:web": "pnpm --filter @streamreader/web build",
-    "test": "pnpm -r test",
-    "lint": "pnpm -r lint",
-    "clean": "pnpm -r clean"
+    "dev": "npm run dev --workspace=@streamreader/web",
+    "dev:web": "npm run dev --workspace=@streamreader/web",
+    "dev:desktop": "npm run dev --workspace=@streamreader/desktop",
+    "build": "npm run build --workspaces",
+    "build:web": "npm run build --workspace=@streamreader/web",
+    "build:desktop": "npm run build --workspace=@streamreader/desktop",
+    "package:desktop": "npm run package --workspace=@streamreader/desktop",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "clean": "rm -rf node_modules packages/*/node_modules"
   },
   "keywords": [
     "speed-reading",
@@ -21,7 +27,6 @@
   "author": "",
   "license": "MIT",
   "engines": {
-    "node": ">=18.0.0",
-    "pnpm": ">=8.0.0"
+    "node": ">=18.0.0"
   }
 }
