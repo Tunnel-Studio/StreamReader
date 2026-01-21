@@ -201,6 +201,10 @@ function App() {
                     content={currentDocument.chapters[currentChapterIndex]?.content || ''}
                     currentWordIndex={rsvp.currentIndex}
                     words={words}
+                    onWordClick={(index) => {
+                       rsvp.stop();
+                       rsvp.goToIndex(index);
+                    }}
                  />
                </div>
             )}

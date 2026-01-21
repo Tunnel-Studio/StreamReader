@@ -5,6 +5,7 @@ export interface DocumentViewerProps {
   currentWordIndex: number;
   words: string[];
   className?: string;
+  onWordClick?: (index: number) => void;
 }
 
 /**
@@ -16,6 +17,7 @@ export function DocumentViewer({
   currentWordIndex,
   words,
   className = '',
+  onWordClick,
 }: DocumentViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const highlightRef = useRef<HTMLSpanElement>(null);
@@ -67,26 +69,32 @@ export function DocumentViewer({
       }
 
       // This is a word
-      if (wordCount === currentWordIndex && !foundHighlight) {
+      const currentIndex = wordCount; // Capture current index for closure
+      const isHighlighted = wordCount === currentWordIndex && !foundHighlight;
+      
+      if (isHighlighted) {
         foundHighlight = true;
-        parts.push(
-          <span
-            key={`word-${i}`}
-            ref={highlightRef}
-            style={{
-              backgroundColor: 'var(--highlight-bg, #fbbf24)',
-              color: 'var(--highlight-color, #1a1a2e)',
-              padding: '2px 4px',
-              borderRadius: '4px',
-              fontWeight: 600,
-            }}
-          >
-            {token}
-          </span>
-        );
-      } else {
-        parts.push(token);
       }
+      
+      parts.push(
+        <span
+          key={`word-${i}`}
+          ref={isHighlighted ? highlightRef : undefined}
+          onClick={() => onWordClick?.(currentIndex)}
+          style={{
+            backgroundColor: isHighlighted ? 'var(--highlight-bg, #fbbf24)' : 'transparent',
+            color: isHighlighted ? 'var(--highlight-color, #1a1a2e)' : 'inherit',
+            padding: '2px 4px',
+            borderRadius: '4px',
+            fontWeight: isHighlighted ? 600 : 400,
+            cursor: 'pointer',
+            transition: 'background-color 0.2s',
+          }}
+          className="word-span"
+        >
+          {token}
+        </span>
+      );
 
       wordCount++;
     }
