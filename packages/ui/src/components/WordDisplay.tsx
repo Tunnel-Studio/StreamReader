@@ -51,7 +51,7 @@ export function WordDisplay({
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
+          width: '100%',
           fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
           fontSize: `${fontSize}px`,
           fontWeight: 500,
@@ -62,19 +62,20 @@ export function WordDisplay({
       >
         {word ? (
           <>
-            <span style={{ opacity: 0.7 }}>{before}</span>
+            <span style={{ flex: 1, textAlign: 'right', opacity: 0.7 }}>{before}</span>
             <span
               style={{
                 color: 'var(--orp-color, #ef4444)',
                 fontWeight: 700,
+                padding: '0 1px',
               }}
             >
               {orp}
             </span>
-            <span style={{ opacity: 0.7 }}>{after}</span>
+            <span style={{ flex: 1, textAlign: 'left', opacity: 0.7 }}>{after}</span>
           </>
         ) : (
-          <span style={{ opacity: 0.3 }}>Ready</span>
+          <span style={{ flex: 1, textAlign: 'center', opacity: 0.3 }}>Ready</span>
         )}
       </div>
 
