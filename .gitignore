@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-**/node_modules/**
 .pnpm-store/
 
 # Build outputs
@@ -36,5 +35,13 @@ coverage/
 # OS files
 Thumbs.db
 
-# Releases
-**/release/**
+# full app & any node modules
+**/release/
+**/node_modules/
+
+# Electron build artifacts
+**/node_modules/
+**/release/
+**/dist/
+**/out/
+**/dist-electron/
