@@ -1,5 +1,6 @@
 import * as FileSystem from 'expo-file-system/legacy';
-import ePub from 'epubjs';
+import JSZip from 'jszip';
+import { XMLParser } from 'fast-xml-parser';
 import type { Chapter } from '@streamreader/core';
 
 export interface ParsedDocument {
@@ -34,11 +35,11 @@ export class MobileDocumentParser {
   }
 
   /**
-   * Parse an EPUB file - simplified and optimized for React Native
+   * Parse an EPUB file using JSZip (much faster than epubjs in React Native)
    */
   async parseEpub(uri: string, filename: string): Promise<ParsedDocument> {
     try {
-      console.log('[Mobile EPUB] Starting parse...');
+      console.log('[Mobile EPUB] Starting JSZip parse...');
       
       // Read file as base64
       const base64 = await FileSystem.readAsStringAsync(uri, {
@@ -47,41 +48,129 @@ export class MobileDocumentParser {
 
       console.log('[Mobile EPUB] File read, size:', base64.length);
       
-      // Convert base64 to ArrayBuffer - simplified
-      const Buffer = require('buffer').Buffer;
-      const buffer = Buffer.from(base64, 'base64');
-      const arrayBuffer = buffer.buffer.slice(
-        buffer.byteOffset,
-        buffer.byteOffset + buffer.byteLength
-      );
+      // Load ZIP file
+      const zip = await JSZip.loadAsync(base64, { base64: true });
+      console.log('[Mobile EPUB] ZIP loaded');
 
-      console.log('[Mobile EPUB] Buffer created, initializing parser...');
-      
-      // Parse with epubjs - minimal approach
-      const book = ePub(arrayBuffer);
-      
-      // Don't wait for full ready, just get what we can quickly
-      let title = filename.replace(/\.epub$/i, '') || 'Untitled';
-      let author: string | undefined;
-      
-      try {
-        // Try to get metadata with short timeout
-        await Promise.race([
-          book.ready.then(async () => {
-            const metadata = await book.loaded.metadata;
-            title = metadata.title || title;
-            author = metadata.creator;
-          }),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 20000))
-        ]);
-      } catch (err) {
-        console.log('[Mobile EPUB] Metadata timeout, using filename');
+      // Create XML parser
+      const parser = new XMLParser({
+        ignoreAttributes: false,
+        attributeNamePrefix: '',
+      });
+
+      // Find and parse container.xml to get the content.opf path
+      const containerXml = await zip.file('META-INF/container.xml')?.async('string');
+      if (!containerXml) {
+        throw new Error('Invalid EPUB: Missing container.xml');
       }
 
-      console.log('[Mobile EPUB] Extracting text...');
+      const containerData = parser.parse(containerXml);
+      const rootfile = containerData.container.rootfiles.rootfile;
+      const rootfilePath = Array.isArray(rootfile) ? rootfile[0]['full-path'] : rootfile['full-path'];
+      console.log('[Mobile EPUB] Content OPF path:', rootfilePath);
+
+      // Parse content.opf
+      const opfContent = await zip.file(rootfilePath)?.async('string');
+      if (!opfContent) {
+        throw new Error('Invalid EPUB: Missing content.opf');
+      }
+
+      const opfData = parser.parse(opfContent);
+      const metadata = opfData.package.metadata;
       
-      // Extract text in a simpler way
-      const chapters = await this.extractEpubTextSimple(book, title);
+      // Extract metadata
+      const dcTitle = metadata['dc:title'];
+      const dcCreator = metadata['dc:creator'];
+      
+      const title = (typeof dcTitle === 'string' ? dcTitle : dcTitle?.['#text'] || dcTitle) || 
+                    filename.replace(/\.epub$/i, '') || 'Untitled';
+      
+      // Handle author - can be string, object with #text, or array of either
+      let author: string | undefined;
+      if (typeof dcCreator === 'string') {
+        author = dcCreator;
+      } else if (Array.isArray(dcCreator)) {
+        // Join multiple authors
+        author = dcCreator
+          .map((c: any) => typeof c === 'string' ? c : c?.['#text'] || '')
+          .filter(Boolean)
+          .join(', ');
+      } else if (dcCreator?.['#text']) {
+        author = dcCreator['#text'];
+      }
+      
+      console.log('[Mobile EPUB] Title:', title, 'Author:', author);
+
+      // Get spine (reading order)
+      let spine = opfData.package.spine.itemref;
+      if (!Array.isArray(spine)) {
+        spine = [spine];
+      }
+      
+      let manifest = opfData.package.manifest.item;
+      if (!Array.isArray(manifest)) {
+        manifest = [manifest];
+      }
+      
+      // Build manifest map
+      const manifestMap: Record<string, any> = {};
+      manifest.forEach((item: any) => {
+        manifestMap[item.id] = item;
+      });
+
+      console.log('[Mobile EPUB] Spine items:', spine.length);
+
+      // Extract content directory (where the OPF file is located)
+      const contentDir = rootfilePath.substring(0, rootfilePath.lastIndexOf('/') + 1);
+
+      const chapters: Chapter[] = [];
+
+      // Process each spine item
+      for (let i = 0; i < spine.length; i++) {
+        const spineItem = spine[i];
+        const idref = spineItem.idref;
+        const manifestItem = manifestMap[idref];
+
+        if (!manifestItem || !manifestItem.href) {
+          console.log(`[Mobile EPUB] Skipping item ${i}: no manifest entry`);
+          continue;
+        }
+
+        const href = contentDir + manifestItem.href;
+        console.log(`[Mobile EPUB] Processing ${i + 1}/${spine.length}: ${href}`);
+
+        try {
+          const htmlContent = await zip.file(href)?.async('string');
+          if (!htmlContent) {
+            console.log(`[Mobile EPUB] No content for ${href}`);
+            continue;
+          }
+
+          // Extract text from HTML
+          const text = this.extractTextFromHTML(htmlContent);
+          
+          if (text && text.trim().length > 50) {
+            chapters.push({
+              id: `chapter-${chapters.length + 1}`,
+              title: `Chapter ${chapters.length + 1}`,
+              content: text,
+              index: chapters.length,
+            });
+            console.log(`[Mobile EPUB] Chapter ${chapters.length} extracted (${text.length} chars)`);
+          }
+        } catch (err) {
+          console.log(`[Mobile EPUB] Error processing ${href}:`, err);
+        }
+      }
+
+      if (chapters.length === 0) {
+        chapters.push({
+          id: 'chapter-1',
+          title: 'Full Text',
+          content: 'Unable to extract text from this EPUB.',
+          index: 0,
+        });
+      }
 
       console.log(`[Mobile EPUB] Complete! ${chapters.length} chapters extracted`);
 
@@ -103,16 +192,13 @@ export class MobileDocumentParser {
     const chapters: Chapter[] = [];
 
     try {
-      // Get spine - this is usually fast
-      await Promise.race([
-        book.loaded.spine,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 20000))
-      ]);
+      console.log('[Mobile EPUB] Loading spine...');
+      await book.loaded.spine;
 
       const spine = book.spine;
       const spineItems: any[] = [];
 
-      // Try to get spine items
+      // Get spine items
       if (spine && typeof spine.each === 'function') {
         spine.each((item: any) => spineItems.push(item));
       } else if (spine && spine.items) {
@@ -121,22 +207,21 @@ export class MobileDocumentParser {
 
       console.log(`[Mobile EPUB] Processing ${spineItems.length} spine items`);
 
-      // Limit to first 50 items for performance
-      const itemsToProcess = spineItems.slice(0, 50);
-
-      // Process each item with timeout
-      for (let i = 0; i < itemsToProcess.length; i++) {
-        const item = itemsToProcess[i];
+      // Process each item WITHOUT timeout
+      for (let i = 0; i < spineItems.length; i++) {
+        const item = spineItems[i];
         
         try {
+          console.log(`[Mobile EPUB] Loading item ${i + 1}/${spineItems.length}...`);
+          
           const section = book.spine.get(item.href || item.idref);
-          if (!section) continue;
+          if (!section) {
+            console.log(`[Mobile EPUB] No section for item ${i}`);
+            continue;
+          }
 
-          // Load with timeout
-          const contents = await Promise.race([
-            section.load(book.load.bind(book)),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 20000))
-          ]);
+          // Load section WITHOUT timeout - just let it complete
+          const contents = await section.load(book.load.bind(book));
 
           // Extract text
           let text = '';
@@ -155,19 +240,15 @@ export class MobileDocumentParser {
               content: text,
               index: chapters.length,
             });
+            console.log(`[Mobile EPUB] Chapter ${chapters.length} extracted (${text.length} chars)`);
           }
 
           // Unload to free memory
           if (section.unload) {
             section.unload();
           }
-
-          // Log progress
-          if (i % 5 === 0) {
-            console.log(`[Mobile EPUB] Processed ${i + 1}/${itemsToProcess.length} items`);
-          }
         } catch (err) {
-          console.log(`[Mobile EPUB] Skipping item ${i}:`, err);
+          console.log(`[Mobile EPUB] Error loading item ${i}:`, err);
         }
       }
 
