@@ -135,7 +135,10 @@ export const createReaderStore = () =>
         removeDocument: (id: string) =>
           set((state) => {
             const { [id]: _, ...rest } = state.documents;
-            return { documents: rest };
+            return { 
+              documents: rest,
+              library: state.library.filter((item) => item.id !== id),
+            };
           }),
       }),
       {

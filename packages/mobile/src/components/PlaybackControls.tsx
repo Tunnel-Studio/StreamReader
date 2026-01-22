@@ -1,15 +1,24 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { Play, Pause, RotateCcw } from 'lucide-react-native';
+import { Play, Pause, RotateCcw, Columns2 } from 'lucide-react-native';
 
 interface PlaybackControlsProps {
   isPlaying: boolean;
   onToggle: () => void;
   onReset: () => void;
   disabled?: boolean;
+  onToggleSplitView?: () => void;
+  splitViewActive?: boolean;
 }
 
-export function PlaybackControls({ isPlaying, onToggle, onReset, disabled }: PlaybackControlsProps) {
+export function PlaybackControls({ 
+  isPlaying, 
+  onToggle, 
+  onReset, 
+  disabled,
+  onToggleSplitView,
+  splitViewActive = false,
+}: PlaybackControlsProps) {
   return (
     <View style={styles.container}>
       <TouchableOpacity 
@@ -31,6 +40,19 @@ export function PlaybackControls({ isPlaying, onToggle, onReset, disabled }: Pla
           <Play size={32} color="#ffffff" fill="#ffffff" />
         )}
       </TouchableOpacity>
+
+      {onToggleSplitView && (
+        <TouchableOpacity 
+          style={[
+            styles.button,
+            splitViewActive && styles.buttonActive,
+          ]} 
+          onPress={onToggleSplitView}
+          disabled={disabled}
+        >
+          <Columns2 size={24} color={splitViewActive ? '#4f46e5' : '#e0e0e0'} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -52,6 +74,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#2a2a4e',
+  },
+  buttonActive: {
+    backgroundColor: '#2a2a4e',
+    borderColor: '#4f46e5',
   },
   playButton: {
     width: 64,

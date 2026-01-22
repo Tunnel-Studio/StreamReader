@@ -11,6 +11,7 @@ import { Menu } from './src/components/Menu';
 import { Library } from './src/components/Library';
 import { SpeedSlider } from './src/components/SpeedSlider';
 import { SizeController } from './src/components/SizeController';
+import { DocumentViewer } from './src/components/DocumentViewer';
 import { useRSVP } from './src/hooks/useRSVP';
 import type { ParsedDocument } from './src/utils/documentParser';
 import { Menu as MenuIcon } from 'lucide-react-native';
@@ -24,6 +25,7 @@ export default function App() {
   const [view, setView] = useState<AppView>('import');
   const [showMenu, setShowMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [splitView, setSplitView] = useState(false);
   
   const {
     wpm,
@@ -135,24 +137,63 @@ export default function App() {
 
             {/* Reader Content */}
             <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-              <WordDisplay word={rsvp.currentWord} fontSize={fontSize} />
-              
-              <View style={styles.controls}>
-                <PlaybackControls 
-                  isPlaying={rsvp.isPlaying}
-                  onToggle={rsvp.togglePlay}
-                  onReset={() => {
-                    rsvp.stop();
-                    rsvp.seek(0);
-                  }}
-                />
-              </View>
+              {!splitView ? (
+                <>
+                  <WordDisplay word={rsvp.currentWord} fontSize={fontSize} />
+                  
+                  <View style={styles.controls}>
+                    <PlaybackControls 
+                      isPlaying={rsvp.isPlaying}
+                      onToggle={rsvp.togglePlay}
+                      onReset={() => {
+                        rsvp.stop();
+                        rsvp.seek(0);
+                      }}
+                      onToggleSplitView={() => setSplitView(!splitView)}
+                      splitViewActive={splitView}
+                    />
+                  </View>
 
-              <View style={styles.settings}>
-                <SpeedSlider value={wpm} onChange={setWpm} />
-                <View style={{ height: 20 }} />
-                <SizeController fontSize={fontSize} onFontSizeChange={setFontSize} />
-              </View>
+                  <View style={styles.settings}>
+                    <SpeedSlider value={wpm} onChange={setWpm} />
+                    <View style={{ height: 20 }} />
+                    <SizeController fontSize={fontSize} onFontSizeChange={setFontSize} />
+                  </View>
+                </>
+              ) : (
+                <View style={styles.splitContainer}>
+                  <View style={styles.splitTop}>
+                    <WordDisplay word={rsvp.currentWord} fontSize={Math.floor(fontSize * 0.75)} />
+                    
+                    <View style={styles.splitControls}>
+                      <PlaybackControls 
+                        isPlaying={rsvp.isPlaying}
+                        onToggle={rsvp.togglePlay}
+                        onReset={() => {
+                          rsvp.stop();
+                          rsvp.seek(0);
+                        }}
+                        onToggleSplitView={() => setSplitView(!splitView)}
+                        splitViewActive={splitView}
+                      />
+                    </View>
+                  </View>
+
+                  <View style={styles.splitBottom}>
+                    {currentDocument && (
+                      <DocumentViewer
+                        content={currentDocument.chapters[currentChapterIndex]?.content || ''}
+                        currentWordIndex={rsvp.currentIndex}
+                        words={words}
+                        onWordClick={(index) => {
+                          rsvp.stop();
+                          rsvp.seek(index);
+                        }}
+                      />
+                    )}
+                  </View>
+                </View>
+              )}
             </ScrollView>
 
             {/* Menu */}
@@ -274,5 +315,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#4f46e5',
     fontWeight: '600',
+  },
+  splitContainer: {
+    flex: 1,
+    width: '100%',
+  },
+  splitTop: {
+    height: 300,
+    padding: 20,
+    borderBottomWidth: 2,
+    borderBottomColor: '#2a2a4e',
+  },
+  splitControls: {
+    marginTop: 12,
+  },
+  splitBottom: {
+    flex: 1,
+    minHeight: 400,
   },
 });

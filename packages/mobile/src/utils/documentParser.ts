@@ -34,20 +34,20 @@ export class MobileDocumentParser {
   }
 
   /**
-   * Parse an EPUB file - optimized for React Native
+   * Parse an EPUB file - simplified and optimized for React Native
    */
   async parseEpub(uri: string, filename: string): Promise<ParsedDocument> {
     try {
-      console.log('Starting EPUB parse...');
+      console.log('[Mobile EPUB] Starting parse...');
       
       // Read file as base64
       const base64 = await FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      console.log('File read as base64, converting to buffer...');
+      console.log('[Mobile EPUB] File read, size:', base64.length);
       
-      // Convert base64 to ArrayBuffer
+      // Convert base64 to ArrayBuffer - simplified
       const Buffer = require('buffer').Buffer;
       const buffer = Buffer.from(base64, 'base64');
       const arrayBuffer = buffer.buffer.slice(
@@ -55,43 +55,35 @@ export class MobileDocumentParser {
         buffer.byteOffset + buffer.byteLength
       );
 
-      console.log('Initializing EPUB parser...');
+      console.log('[Mobile EPUB] Buffer created, initializing parser...');
       
-      // Parse with epubjs - use simpler method
+      // Parse with epubjs - minimal approach
       const book = ePub(arrayBuffer);
       
-      // Get metadata quickly without waiting for full ready
-      const title = filename.replace(/\.epub$/i, '') || 'Untitled';
+      // Don't wait for full ready, just get what we can quickly
+      let title = filename.replace(/\.epub$/i, '') || 'Untitled';
       let author: string | undefined;
       
       try {
+        // Try to get metadata with short timeout
         await Promise.race([
-          book.ready,
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+          book.ready.then(async () => {
+            const metadata = await book.loaded.metadata;
+            title = metadata.title || title;
+            author = metadata.creator;
+          }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 20000))
         ]);
-        
-        const metadata = await book.loaded.metadata;
-        author = metadata.creator;
       } catch (err) {
-        console.log('Metadata load timeout, using filename as title');
+        console.log('[Mobile EPUB] Metadata timeout, using filename');
       }
 
-      console.log('Extracting chapters...');
+      console.log('[Mobile EPUB] Extracting text...');
       
-      // Extract chapters with timeout
-      const chapters = await Promise.race([
-        this.extractEpubChapters(book),
-        new Promise<Chapter[]>((resolve) => 
-          setTimeout(() => resolve([{
-            id: 'chapter-1',
-            title: 'Full Text',
-            content: 'EPUB is loading... This may take a moment for large files.',
-            index: 0,
-          }]), 10000)
-        )
-      ]);
+      // Extract text in a simpler way
+      const chapters = await this.extractEpubTextSimple(book, title);
 
-      console.log(`EPUB parsing complete, ${chapters.length} chapters extracted`);
+      console.log(`[Mobile EPUB] Complete! ${chapters.length} chapters extracted`);
 
       return {
         title,
@@ -99,61 +91,83 @@ export class MobileDocumentParser {
         chapters,
       };
     } catch (error) {
-      console.error('Error parsing EPUB:', error);
+      console.error('[Mobile EPUB] Error:', error);
       throw new Error(`Failed to parse EPUB: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   /**
-   * Extract chapters from EPUB
+   * Simplified EPUB text extraction
    */
-  private async extractEpubChapters(book: any): Promise<Chapter[]> {
+  private async extractEpubTextSimple(book: any, fallbackTitle: string): Promise<Chapter[]> {
     const chapters: Chapter[] = [];
 
     try {
-      await book.loaded.spine;
-      const navigation = await book.loaded.navigation;
-      const tocMap = this.buildTocMap(navigation.toc || []);
+      // Get spine - this is usually fast
+      await Promise.race([
+        book.loaded.spine,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 20000))
+      ]);
 
       const spine = book.spine;
-      const spineItems: Array<{ href: string; index: number; idref: string }> = [];
+      const spineItems: any[] = [];
 
+      // Try to get spine items
       if (spine && typeof spine.each === 'function') {
-        spine.each((item: { href: string; index: number; idref: string }) => {
-          spineItems.push(item);
-        });
+        spine.each((item: any) => spineItems.push(item));
+      } else if (spine && spine.items) {
+        spineItems.push(...spine.items);
       }
 
-      // Process each spine item
-      for (let i = 0; i < spineItems.length; i++) {
-        const item = spineItems[i];
+      console.log(`[Mobile EPUB] Processing ${spineItems.length} spine items`);
+
+      // Limit to first 50 items for performance
+      const itemsToProcess = spineItems.slice(0, 50);
+
+      // Process each item with timeout
+      for (let i = 0; i < itemsToProcess.length; i++) {
+        const item = itemsToProcess[i];
         
         try {
-          const section = book.spine.get(item.href);
+          const section = book.spine.get(item.href || item.idref);
           if (!section) continue;
 
-          const doc = await section.load(book.load.bind(book));
-          
-          // Extract text using a simpler approach
-          let textContent = '';
-          if (doc && doc.body) {
-            textContent = this.extractTextFromHTML(doc.body.innerHTML || '');
+          // Load with timeout
+          const contents = await Promise.race([
+            section.load(book.load.bind(book)),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 20000))
+          ]);
+
+          // Extract text
+          let text = '';
+          if (contents && contents.innerHTML) {
+            text = this.extractTextFromHTML(contents.innerHTML);
+          } else if (contents && contents.body && contents.body.innerHTML) {
+            text = this.extractTextFromHTML(contents.body.innerHTML);
+          } else if (typeof contents === 'string') {
+            text = this.extractTextFromHTML(contents);
           }
-          
-          if (textContent.trim().length > 0) {
-            const chapterTitle = tocMap.get(item.href) || `Chapter ${chapters.length + 1}`;
-            
+
+          if (text && text.trim().length > 50) {
             chapters.push({
               id: `chapter-${chapters.length + 1}`,
-              title: chapterTitle,
-              content: textContent,
+              title: `Chapter ${chapters.length + 1}`,
+              content: text,
               index: chapters.length,
             });
           }
 
-          section.unload();
-        } catch (error) {
-          console.error(`Error processing spine item ${i}:`, error);
+          // Unload to free memory
+          if (section.unload) {
+            section.unload();
+          }
+
+          // Log progress
+          if (i % 5 === 0) {
+            console.log(`[Mobile EPUB] Processed ${i + 1}/${itemsToProcess.length} items`);
+          }
+        } catch (err) {
+          console.log(`[Mobile EPUB] Skipping item ${i}:`, err);
         }
       }
 
@@ -161,22 +175,20 @@ export class MobileDocumentParser {
         chapters.push({
           id: 'chapter-1',
           title: 'Full Text',
-          content: 'Unable to extract text content from this EPUB.',
+          content: 'Unable to extract text from this EPUB. The file may be protected or in an unsupported format.',
           index: 0,
         });
       }
 
       return chapters;
     } catch (error) {
-      console.error('Error extracting EPUB chapters:', error);
-      return [
-        {
-          id: 'chapter-1',
-          title: 'Full Text',
-          content: 'Error extracting EPUB content.',
-          index: 0,
-        },
-      ];
+      console.error('[Mobile EPUB] Extraction error:', error);
+      return [{
+        id: 'chapter-1',
+        title: 'Error',
+        content: 'Failed to extract EPUB content. The file may be corrupted or protected.',
+        index: 0,
+      }];
     }
   }
 
