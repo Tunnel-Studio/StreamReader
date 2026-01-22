@@ -1,1 +1,1 @@
-export { useReaderStore, createReaderStore } from './readerStore.js';
+export { useReaderStore, createReaderStore } from './readerStore';

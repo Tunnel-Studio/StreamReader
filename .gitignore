@@ -45,3 +45,9 @@ Thumbs.db
 **/dist/
 **/out/
 **/dist-electron/
+
+# mobile build artifacts
+ios/
+**/ios/
+android/
+**/android/

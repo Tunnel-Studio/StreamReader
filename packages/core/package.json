@@ -5,9 +5,11 @@
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
+  "react-native": "./src/index.mobile.ts",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "react-native": "./src/index.mobile.ts",
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },

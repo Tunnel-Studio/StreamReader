@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Document, DocumentMeta, ReaderStore } from '../types/index.js';
+import type { Document, DocumentMeta, ReaderStore } from '../types/index';
 
 const DEFAULT_WPM = 300;
 const DEFAULT_FONT_SIZE = 48;

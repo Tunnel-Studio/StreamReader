@@ -1,13 +1,13 @@
 // RSVP Engine
-export { RSVPEngine, calculateORP, calculateDelay, splitWordByORP } from './rsvp/index.js';
-export type { RSVPCallback, RSVPEngineOptions } from './rsvp/index.js';
+export { RSVPEngine, calculateORP, calculateDelay, splitWordByORP } from './rsvp/index';
+export type { RSVPCallback, RSVPEngineOptions } from './rsvp/index';
 
 // Store
-export { useReaderStore, createReaderStore } from './store/index.js';
+export { useReaderStore, createReaderStore } from './store/index';
 
 // Parsers
-export { UnifiedDocumentParser, documentParser, TextParser, EpubParser, PdfParser } from './parsers/index.js';
-export type { DocumentParser, ParsedDocument } from './parsers/index.js';
+export { UnifiedDocumentParser, documentParser, TextParser, EpubParser, PdfParser } from './parsers/index';
+export type { DocumentParser, ParsedDocument } from './parsers/index';
 
 // Types
 export type {

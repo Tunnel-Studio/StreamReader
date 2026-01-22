@@ -13,6 +13,9 @@
     "build": "npm run build --workspaces",
     "build:web": "npm run build --workspace=@streamreader/web",
     "build:desktop": "npm run build --workspace=@streamreader/desktop",
+    "dev:mobile": "npm run start --workspace=@streamreader/mobile",
+    "android": "npm run android --workspace=@streamreader/mobile",
+    "ios": "npm run ios --workspace=@streamreader/mobile",
     "package:desktop": "npm run package --workspace=@streamreader/desktop",
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces",
@@ -28,5 +31,11 @@
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "text-encoding-polyfill": "^0.6.7",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "expo": "~54.0.32"
   }
 }

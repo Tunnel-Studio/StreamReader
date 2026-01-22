@@ -1,5 +1,5 @@
-import { calculateDelay, calculateORP, splitWordByORP } from './orp.js';
-import type { RSVPWord } from '../types/index.js';
+import { calculateDelay, calculateORP, splitWordByORP } from './orp';
+import type { RSVPWord } from '../types/index';
 
 export type RSVPCallback = (word: RSVPWord, index: number) => void;
 
